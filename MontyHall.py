@@ -1,5 +1,4 @@
 import random
-import pdb
 
 MIN_DOORS = 3
 MAX_DOORS = 10
@@ -11,12 +10,12 @@ def input_is_valid(user_input, criteria_fn):
 	Parameters
 	----------
 	user_input (str): input read from the command line
-	critiera_fn (function): takes an integer input and returns a bool based on
-							some critiera
+	criteria_fn (function): takes an integer input and returns a bool based on
+							some criteria
 
 	Returns (bool)
 	-------
-	True if the input was succesfully parsed to in an integer and satisfies the
+	True if the input was succesfully parsed to an integer and satisfies the
 	given criteria function, False otherwise
 	"""
 	try:
@@ -36,12 +35,11 @@ def get_user_input(init_msg, fail_msg, criteria_fn):
 					string should have a placeholder for .format() to insert the
 					invalid input.
 	criteria_fn (function): takes an integer input and returns a bool based on
-							some critiera
+							some criteria
 
 	Returns (int)
 	-------
 	integer specified by the user that satisfies the criteria
-		
 	"""
 	user_input = input(init_msg + ": ")
 	while not input_is_valid(user_input, criteria_fn):
@@ -60,8 +58,8 @@ def get_num_doors():
 	init_msg = "How many doors do you want to play with?"
 	init_msg += " Must be >= {} and <= {}".format(MIN_DOORS, MAX_DOORS)
 	fail_msg = "{} is not a valid number of doors!"
-	critera = lambda num : num >= MIN_DOORS and num <= MAX_DOORS
-	return get_user_input(init_msg, fail_msg, critera)
+	criteria = lambda num : num >= MIN_DOORS and num <= MAX_DOORS
+	return get_user_input(init_msg, fail_msg, criteria)
 
 def initialize():
 	"""Prints the welcome message and asks the user how many doors they want to
@@ -70,7 +68,6 @@ def initialize():
 	Returns (int)
 	-------
 	the number of doors the user wants to play with
-
 	"""
 	print("Welcome to Let's Make a Deal!")
 	num_doors = get_num_doors()
@@ -78,22 +75,21 @@ def initialize():
 	print("Behind the other {} doors are smelly goats.".format(num_doors - 1))
 	return num_doors
 
-def get_door_choice(init_msg, door_critiera):
+def get_door_choice(init_msg, door_criteria):
 	"""Asks the user what door they would like to choose.
 
 	Parameters
 	----------
-	init_msg (str): initial message to display to the user to ask for input
+	init_msg (str): message to display to the user to ask for a door number
 	door_criteria (function): takes an integer input and returns a bool if it is 
 							  a valid door number
 
 	Returns (int)
 	-------
 	the door number the user has chosen
-
 	"""
 	fail_msg = "{} is not a valid door number!"
-	return get_user_input(init_msg, fail_msg, door_critiera)
+	return get_user_input(init_msg, fail_msg, door_criteria)
 
 def open_goat_doors(chosen_door, car_door, num_doors):
 	"""Opens all but two of the doors, all of which will have goats behind them.
@@ -109,16 +105,13 @@ def open_goat_doors(chosen_door, car_door, num_doors):
 	-------
 	number of the other door that remains closed (i.e., the one that is not the 
 	user's currently chosen door)
-
 	"""
 
-	# host won't open the chosen door or the door with the car behind it
-	invalid_doors = {chosen_door, car_door} 
-	goat_doors = [i for i in range(1, num_doors + 1) if i not in invalid_doors]
-
-	# if the user chose incorrectly, the car door must be the other closed door
-	user_is_incorrect = chosen_door != car_door
-	closed_door = car_door if user_is_incorrect else random.choice(goat_doors)
+	if chosen_door != car_door:  # car door must be other closed door
+		closed_door = car_door
+	else: # pick one other door that is not chosen door to remain closed
+		goat_doors = [i for i in range(1, num_doors + 1) if i != chosen_door]
+		closed_door = random.choice(goat_doors)
 
 	# reveal the opened doors to the user
 	door_output = "X" if closed_door == 1 or chosen_door == 1 else "G"
@@ -140,11 +133,10 @@ def get_twist_message(num_doors):
 	Returns (str)
 	-------
 	string describing that the host will reveal some of the doors to the user
-
 	"""
 	message = "To add a twist, let me show you {} {} with {} behind {}."
 	if num_doors - 2 == 1:
-		return message.format(num_doors - 2, "door", "a goat", "it")
+		return message.format(1, "door", "a goat", "it")
 	else:
 		return message.format(num_doors - 2, "doors", "goats", "them")
 		
@@ -160,7 +152,6 @@ def show_final(chosen_door, car_door, num_doors):
 	Returns (bool)
 	-------
 	True if the user won the car, False otherwise
-
 	"""
 	door_output = "C" if car_door == 1 else "G"
 	for door_num in range(2, num_doors + 1):
@@ -208,7 +199,6 @@ def play_again():
 	Returns
 	-------
 	True if the user would like to play again, False otherwise
-
 	"""
 	valid_yes = {"yes", "y"}
 	valid_no = {"no", "n"}
@@ -221,18 +211,17 @@ def play_again():
 def main():
 	"""Repeatedly plays game with the user until requested to stop. Will then
 	print out statistics for how well the user did.
-
 	"""
 	num_doors = initialize() # gets the number of doors to play with
 	num_won = 0
-	total_games = 0
+	num_games = 0
 	num_won += play_game(num_doors)
-	total_games += 1
+	num_games += 1
 	while(play_again()):
 		num_won += play_game(num_doors)
-		total_games += 1
-	percent_won = num_won / total_games * 100
-	print("You won {} out of {} games ({}%)".format(num_won, total_games, percent_won))
+		num_games += 1
+	percent = num_won / num_games * 100
+	print("You won {} of {} games ({}%)".format(num_won, num_games, percent))
 
 if __name__ == "__main__":
 	main()
